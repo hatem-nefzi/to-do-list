@@ -1,0 +1,155 @@
+<div class="container">
+  <!-- Header -->
+  <header>
+    <h1>📝 Mes Tâches</h1>
+    <div class="user-info">
+      <span *ngIf="currentUser$ | async as user">👤 {{ user }}</span>
+      <button class="btn-logout" (click)="onLogout()">Déconnexion</button>
+    </div>
+  </header>
+
+  <!-- Add Task Button -->
+  <div class="actions">
+    <button class="btn-add" (click)="toggleForm()">
+      {{ showForm ? '❌ Annuler' : '➕ Nouvelle tâche' }}
+    </button>
+  </div>
+
+  <!-- Task Form -->
+  <div class="form-container" *ngIf="showForm">
+    <h2>{{ editingTask ? '✏️ Modifier la tâche' : '➕ Nouvelle tâche' }}</h2>
+    
+    <form [formGroup]="taskForm" (ngSubmit)="onSubmit()">
+      <div class="form-group">
+        <label>Titre *</label>
+        <input 
+          type="text" 
+          formControlName="title"
+          placeholder="Titre de la tâche"
+          [class.error]="f['title'].invalid && f['title'].touched"
+        />
+        <div class="error-message" *ngIf="f['title'].invalid && f['title'].touched">
+          <small *ngIf="f['title'].errors?.['required']">Le titre est requis</small>
+          <small *ngIf="f['title'].errors?.['maxlength']">Max 100 caractères</small>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea 
+          formControlName="description"
+          placeholder="Description de la tâche"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Priorité * (1-5)</label>
+          <select formControlName="priority">
+            <option value="1">1 - Très basse</option>
+            <option value="2">2 - Basse</option>
+            <option value="3">3 - Moyenne</option>
+            <option value="4">4 - Haute</option>
+            <option value="5">5 - Urgente</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Date d'échéance *</label>
+          <input 
+            type="date" 
+            formControlName="dueDate"
+            [class.error]="f['dueDate'].invalid && f['dueDate'].touched"
+          />
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn-primary" [disabled]="taskForm.invalid">
+          {{ editingTask ? '💾 Sauvegarder' : '➕ Ajouter' }}
+        </button>
+        <button type="button" class="btn-secondary" (click)="toggleForm()">
+          Annuler
+        </button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Active Tasks -->
+  <section class="tasks-section">
+    <h2>🔥 Tâches en cours</h2>
+    
+    <div *ngIf="activeTasks$ | async as tasks">
+      <div *ngIf="tasks.length === 0" class="empty-state">
+        <p>✅ Aucune tâche en cours</p>
+      </div>
+      
+      <div class="task-grid">
+        <div *ngFor="let task of tasks" class="task-card">
+          <div class="task-header">
+            <h3>{{ task.title }}</h3>
+            <span class="priority-badge" [ngClass]="getPriorityClass(task.priority)">
+              {{ getPriorityLabel(task.priority) }}
+            </span>
+          </div>
+          
+          <p class="task-description">{{ task.description || 'Aucune description' }}</p>
+          
+          <div class="task-footer">
+            <span class="due-date">📅 {{ task.dueDate | date:'dd/MM/yyyy' }}</span>
+            
+            <div class="task-actions">
+              <button class="btn-icon btn-complete" (click)="onToggle(task.id)" title="Marquer comme terminée">
+                ✓
+              </button>
+              <button class="btn-icon btn-edit" (click)="onEdit(task)" title="Modifier">
+                ✏️
+              </button>
+              <button class="btn-icon btn-delete" (click)="onDelete(task.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Completed Tasks -->
+  <section class="tasks-section">
+    <h2>✅ Tâches terminées</h2>
+    
+    <div *ngIf="completedTasks$ | async as tasks">
+      <div *ngIf="tasks.length === 0" class="empty-state">
+        <p>Aucune tâche terminée</p>
+      </div>
+      
+      <div class="task-grid">
+        <div *ngFor="let task of tasks" class="task-card completed">
+          <div class="task-header">
+            <h3>{{ task.title }}</h3>
+            <span class="priority-badge" [ngClass]="getPriorityClass(task.priority)">
+              {{ getPriorityLabel(task.priority) }}
+            </span>
+          </div>
+          
+          <p class="task-description">{{ task.description || 'Aucune description' }}</p>
+          
+          <div class="task-footer">
+            <span class="due-date">📅 {{ task.dueDate | date:'dd/MM/yyyy' }}</span>
+            
+            <div class="task-actions">
+              <button class="btn-icon btn-uncomplete" (click)="onToggle(task.id)" title="Réactiver">
+                ↩️
+              </button>
+              <button class="btn-icon btn-delete" (click)="onDelete(task.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
